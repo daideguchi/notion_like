@@ -21,12 +21,11 @@ router.post(
   body("confirmPassword")
     .isLength({ min: 8 })
     .withMessage("確認用パスワードは8文字以上である必要があります。"),
-  body("username").custom((value) => {
-    return User.findOne({ username: value }).then((user) => {
+  body("username").custom(async (value) => {
+    const user = await User.findOne({ username: value });
       if (user) {
-        return Promise.reject("このユーザー名はすでに使われています。");
+          return Promise.reject("このユーザー名はすでに使われています。");
       }
-    });
   }),
   validation.validate,
   userController.register

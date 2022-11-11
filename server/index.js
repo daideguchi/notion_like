@@ -2,13 +2,17 @@ const express = require("express");
 const mongoose = require("mongoose");
 // const { response } = require("express");
 const app = express();
-const PORT = 3000;
+const PORT = 3001;
 require("dotenv").config();
+const cors = require("cors");
 
+app.use(cors({
+    origin: "http://localhost:3000",
+})
+)
 app.use(express.json());
-app.use("/api/v1", require("./src/v1/routes/auth"));
+app.use("/api/v1", require("./src/v1/routes"));
 
-//localhost:3000/api/v1/register
 
 // app.get("/", (req, res) => {
 //     res.send("Hello Express")
@@ -21,8 +25,6 @@ try {
 } catch (error) {
   console.log(error);
 }
-
-
 
 app.listen(PORT, () => {
   console.log(`ローカルサーバー起動中`);

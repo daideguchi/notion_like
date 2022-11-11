@@ -7,6 +7,7 @@ const userController = require("../controllers/user");
 const tokenHandler = require("../handlers/tokenHandler")
 // require("dotenv").config();
 
+//https://localhost:3001/api/v1/auth/register
 
 //ユーザー新規登録用API
 router.post(

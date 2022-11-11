@@ -61,23 +61,25 @@ const Register = () => {
       });
       setLoading(false);
       localStorage.setItem("token", res.token);
+      console.log("新規登録完了")
       navigate("/");
     } catch (err) {
       // console.log(err);
       const errors = err.data.errors;
       console.log(errors);
-      errors.forEach((e) => {
-        if (e.param === "username") {
-          setUsernameErrText(e.msg);
+      errors.forEach((err) => {
+        if (err.param === "username") {
+          setUsernameErrText(err.msg);
         }
-        if (e.param === "password") {
-          setPasswordErrText(e.msg);
+        if (err.param === "password") {
+          setPasswordErrText(err.msg);
         }
-        if (e.param === "confirmPassword") {
-          setConfirmPasswordErrText(e.msg);
+        if (err.param === "confirmPassword") {
+          setConfirmPasswordErrText(err.msg);
         }
       });
       setLoading(false);
+      //  navigate("/");
     }
   };
   return (

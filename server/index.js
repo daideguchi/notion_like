@@ -6,13 +6,13 @@ const PORT = 3001;
 require("dotenv").config();
 const cors = require("cors");
 
-app.use(cors({
+app.use(
+  cors({
     origin: "http://localhost:3000",
-})
-)
+  })
+);
 app.use(express.json());
 app.use("/api/v1", require("./src/v1/routes"));
-
 
 // app.get("/", (req, res) => {
 //     res.send("Hello Express")

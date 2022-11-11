@@ -5,8 +5,7 @@ const getToken = () => localStorage.getItem("token");
 
 const axiosClient = axios.create({
     baseURL: BASE_URL,
-    
-})
+});
 
 //APIを叩く前に前処理を行う
 axiosClient.interceptors.request.use(async (config) => {
@@ -21,7 +20,7 @@ axiosClient.interceptors.request.use(async (config) => {
 });
 
 axiosClient.interceptors.response.use((response) => {
-    return response;
+    return response.data;
 },
     (err) => {
         throw err.response;

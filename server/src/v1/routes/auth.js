@@ -1,11 +1,11 @@
 //認証用API
 const router = require("express").Router();
-const { body } = require("express-validator");
+const { body, validationResult } = require("express-validator");
 const User = require("../models/user");
 const validation = require("../handlers/validation")
 const userController = require("../controllers/user");
 const tokenHandler = require("../handlers/tokenHandler")
-// require("dotenv").config();
+require("dotenv").config();
 
 //https://localhost:3001/api/v1/auth/register
 

@@ -1,3 +1,5 @@
+import React, { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import {
   Drawer,
   IconButton,
@@ -5,34 +7,36 @@ import {
   ListItemButton,
   Typography,
 } from "@mui/material";
+import assets from "../../assets/index";
 import { Box } from "@mui/system";
-import React, { useEffect } from "react";
-import LogoutOutlined from "@mui/icons-material/LogoutOutlined";
-import AddBoxOutlineIcon from "@mui/icons-material/AddBoxOutlined";
-import assets from "../../assets";
-import { Link, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
+import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import memoApi from "../../api/memoApi";
-import { setmemo } from "../../redux/features/memoSlice";
+import { setMemo } from "../../redux/features/memoSlice";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+// import FavoriteList from "./FavoriteList";
 
-const Sideber = () => {
-  const dispatch = useDispatch();
+const Sidebar = () => {
+  const [activeItem, setActiveIndex] = useState(0);
 
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { memoId } = useParams();
   const user = useSelector((state) => state.user.value);
   const memos = useSelector((state) => state.memo.value);
+  // console.log(memo);
+  const sidebarWidth = 250;
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-  };
-
+  //読み込み時に自分の📝を全て取得
   useEffect(() => {
     const getMemos = async () => {
       try {
         const res = await memoApi.getAll();
-        console.log(res);
-        dispatch(setmemo(memos));
+        // console.log(res); //配列として返ってきてない。
+        // console.log(res.length); //ここがとれてない
+        //状態をグローバルに保存
+        dispatch(setMemo(res));
       } catch (err) {
         alert(err);
       }
@@ -40,16 +44,56 @@ const Sideber = () => {
     getMemos();
   }, [dispatch]);
 
+  //ここが毎回発火してしまってる。
+  useEffect(() => {
+    const activeItem = memos.findIndex((e) => e.id === memoId);
+    //📝が１つ以上あり、かつmemoIdがundefinedじゃない時
+    if (memos.length > 0 && memoId === undefined) {
+      // navigate(`/memo/${memos[0].id}`);
+    }
+    setActiveIndex(activeItem);
+  }, [memos, memoId, navigate]);
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
+
+  const onDragEnd = () => {
+    //後で並び変える
+  };
+
+  const addMemo = async () => {
+    try {
+      console.log("addmemo");
+      const res = await memoApi.create();
+      console.log(res); //object
+      console.log(...memos); //配列の中身からobjectを取り出す
+      const newList = [res, ...memos];
+      dispatch(setMemo(newList));
+      navigate(`/memo/${res.id}`);
+    } catch (err) {
+      alert(err);
+    }
+  };
+
   return (
     <Drawer
       container={window.document.body}
-      variant="parmanent"
-      open="true"
-      sx={{ width: 250, height: "100vh" }}
+      variant="permanent"
+      open={true}
+      sx={{
+        width: sidebarWidth,
+        height: "100vh",
+        "& > div": {
+          borderRight: "none",
+        },
+      }}
     >
       <List
+        disablePadding
         sx={{
-          width: 250,
+          width: sidebarWidth,
           height: "100vh",
           backgroundColor: assets.colors.secondary,
         }}
@@ -63,20 +107,17 @@ const Sideber = () => {
               justifyContent: "space-between",
             }}
           >
-            <Typography variant="body2" fontweight="700">
-              name:{user.username}
+            <Typography variant="body2" fontWeight="700">
+              {user.username}
             </Typography>
             <IconButton onClick={logout}>
-              <LogoutOutlined />
+              <LogoutOutlinedIcon fontSize="small" />
             </IconButton>
           </Box>
         </ListItemButton>
-
-        {/* 余白 */}
-        <Box sx={{ pt: "10px" }}></Box>
-        {/* 余白 */}
-
-        <ListItemButton>
+        <Box sx={{ paddingTop: "10px" }}></Box>
+        {/* <FavoriteList /> */}
+        {/* <ListItemButton>
           <Box
             sx={{
               width: "100%",
@@ -85,23 +126,12 @@ const Sideber = () => {
               justifyContent: "space-between",
             }}
           >
-            <Typography variant="body2" fontweight="700">
+            <Typography variant="body2" fontWeight="700">
               お気に入り
             </Typography>
-            <IconButton>
-              <AddBoxOutlineIcon fontsize="small" />
-            </IconButton>
           </Box>
-
-          {/* 余白 */}
-          <Box sx={{ pt: "10px" }}></Box>
-          {/* 余白 */}
-        </ListItemButton>
-
-        {/* 余白 */}
-        <Box sx={{ pt: "10px" }}></Box>
-        {/* 余白 */}
-
+        </ListItemButton> */}
+        <Box sx={{ paddingTop: "10px" }}></Box>
         <ListItemButton>
           <Box
             sx={{
@@ -111,30 +141,62 @@ const Sideber = () => {
               justifyContent: "space-between",
             }}
           >
-            <Typography variant="body2" fontweight="700">
+            <Typography variant="body2" fontWeight="700">
               プライベート
             </Typography>
-            <IconButton>
-              <AddBoxOutlineIcon fontsize="small" />
+            <IconButton onClick={() => addMemo()}>
+              <AddBoxOutlinedIcon fontSize="small" />
             </IconButton>
           </Box>
         </ListItemButton>
-
-        {memos.map((item, index) = (
-        <ListItemButton
-            sx={{ pl: "20px" }}
-            component={Link}
-            to={`/memo/${item._id}`}
-            key = {item._id}
-        >
-            <Typography>
-              {item.icon}{item.title}
-            </Typography>
-          </ListItemButton>
-            ))}
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Droppable
+            key={`list-memo-droppable`}
+            droppableId={`list-memo-droppable`}
+          >
+            {(provided) => (
+              <div ref={provided.innerRef} {...provided.droppableProps}>
+                {memos.map((item, index) => (
+                  <Draggable key={item.id} draggableId={item.id} index={index}>
+                    {(provided, snapshot) => (
+                      <ListItemButton
+                        ref={provided.innerRef}
+                        {...provided.dragHandleProps}
+                        {...provided.draggableProps}
+                        selected={index === activeItem}
+                        component={Link}
+                        to={`/memo/${item.id}`}
+                        sx={{
+                          pl: "20px",
+                          cursor: snapshot.isDragging
+                            ? "grab"
+                            : "pointer!important",
+                        }}
+                        // onClick={() => console.log(item.id)}
+                      >
+                        <Typography
+                          variant="body2"
+                          fontWeight="700"
+                          sx={{
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {item.icon} {item.title}
+                        </Typography>
+                      </ListItemButton>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
       </List>
     </Drawer>
   );
 };
 
-export default Sideber;
+export default Sidebar;
